@@ -12,7 +12,7 @@
   "license": "MIT",
   "author": "K Manoj Kumar <mk@kmanojkumar.com> (https://kmanojkumar.com)",
   "type": "module",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "private": true,
   "engines": {
     "node": ">=22.12.0"
@@ -50,7 +50,6 @@
     "astro-embed": "^0.13.0",
     "dayjs": "^1.11.20",
     "github-slugger": "^2.0.0",
-    "lodash.kebabcase": "^4.1.1",
     "reading-time": "^1.5.0",
     "rehype-katex": "^7.0.1",
     "rehype-mermaid": "^3.0.0",
@@ -68,7 +67,6 @@
     "@pagefind/default-ui": "^1.5.2",
     "@shikijs/transformers": "^4.0.2",
     "@tailwindcss/typography": "^0.5.19",
-    "@types/lodash.kebabcase": "^4.1.9",
     "@typescript-eslint/parser": "^8.59.3",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
@@ -81,6 +79,7 @@
     "prettier": "3.8.3",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "rehype-external-links": "^3.0.0",
     "typescript": "^6.0.3",
     "unist-util-visit": "^5.1.0",
     "wrangler": "^4.0.0"

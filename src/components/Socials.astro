@@ -24,13 +24,19 @@ const items = await Promise.all(
 
 <div class="flex flex-wrap items-center gap-1">
   {
-    items.map(({ url, title, Icon }) =>
-      Icon ? (
-        <LinkButton href={url} class="p-2 sm:p-1" title={title}>
+    items.map(({ url, title, Icon }) => {
+      if (!Icon) return null;
+      // Treat http(s) URLs as external; keep mailto:, /paths, etc. in-place.
+      const isExternal = /^https?:\/\//.test(url);
+      const linkAttrs = isExternal
+        ? { target: "_blank", rel: "noopener noreferrer" }
+        : {};
+      return (
+        <LinkButton href={url} class="p-2 sm:p-1" title={title} {...linkAttrs}>
           <Icon class="inline-block size-5 fill-transparent stroke-current stroke-2 opacity-90" />
           <span class="sr-only">{title}</span>
         </LinkButton>
-      ) : null
-    )
+      );
+    })
   }
 </div>

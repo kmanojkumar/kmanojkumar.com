@@ -1,18 +1,23 @@
-import kebabcase from "lodash.kebabcase";
 import slugify from "slugify";
 
-const hasNonLatin = (str: string): boolean => /[^\x00-\x7F]/.test(str);
-
 /**
- * Slugify a string using a hybrid approach:
- * - Latin strings: slugify (e.g. "E2E Testing" → "e2e-testing")
- * - Strings with non-Latin chars: lodash.kebabcase (preserves non-Latin chars)
+ * Slugify a string into a safe identifier: lowercase, letters/digits/hyphens
+ * only. Non-alphanumeric characters are stripped (not replaced), consecutive
+ * hyphens collapse, leading/trailing hyphens are trimmed.
+ *
+ * Output is simultaneously valid as:
+ * - URL path segment
+ * - CSS identifier (`view-transition-name`, class names, ids)
+ * - HTML id attribute value
+ *
+ * So the same slug can be passed to `href`, `transition:name`, and inline
+ * `style={{ viewTransitionName }}` without any further encoding — no
+ * apostrophe-vs-colon escape mismatches between code paths.
  */
-export const slugifyStr = (str: string): string => {
-  if (hasNonLatin(str)) {
-    return kebabcase(str);
-  }
-  return slugify(str, { lower: true });
-};
+export const slugifyStr = (str: string): string =>
+  slugify(str, { lower: true })
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 export const slugifyAll = (arr: string[]) => arr.map(str => slugifyStr(str));

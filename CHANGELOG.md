@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1] — 2026-05-18
+
+### Fixed
+
+- Pagefind search now loads its WebAssembly index. CSP `script-src` was blocking WASM compilation; added `'wasm-unsafe-eval'`.
+- Post-title view-transition morph works for every post, including titles with apostrophes or colons (`"Didn't Catch Up"`, `"Hyperdrive:"`). Both Card and Post H1 now use Astro's `transition:name` directive (consistent CSS-ident escaping). Belt-and-suspenders: `slugifyStr` strips all non-`[a-z0-9-]` characters at the source so the bug can't recur with future titles.
+- Top progress rail on post pages appears reliably on every navigation and hard refresh. Was intermittently missing due to `data-astro-rerun` racing the View Transition swap. Refactored to an idempotent `astro:page-load` listener + eager initial call.
+- Progress rail is now scoped to post pages only (via `<article id="article">` marker check) — was previously rendering on homepage and other surfaces after first visiting a post in a session.
+
+### Changed
+
+- Hero headshot fades from grayscale → full color on hover/focus (500 ms).
+- `Socials` links set `rel="noopener noreferrer"` on external `http(s)` URLs; `mailto:` and relative paths untouched.
+- PWA icons regenerated (`favicon-32x32`, `icon-192`, `icon-512`, `apple-touch-icon`). `?v=2` cache-bust query appended in `<link>` hrefs to invalidate the 1-year cache from v3.1.0.
+- Additional Geist Mono font preload (used in topic chips, footer, meta lines).
+- `rehype-external-links` plugin added — external links inside post bodies now get `target="_blank" rel="noopener noreferrer"` automatically.
+
+### Removed
+
+- `lodash.kebabcase` dependency (no longer used after `slugifyStr` rewrite).
+
 ## [3.1.0] — 2026-05-18
 
 Initial public launch of **kmanojkumar.com v3** — a Git-backed personal blog

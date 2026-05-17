@@ -173,7 +173,7 @@ offset on the site (links + nav + body + search input).
 
 ## Acknowledgements
 
-Built on [AstroPaper](https://github.com/satnaing/astro-paper) by [Sat Naing](https://satnaing.dev) — thanks for the clean foundation.
+Built on [AstroPaper](https://github.com/satnaing/astro-paper) — thanks for the clean foundation.
 
 ## License
 

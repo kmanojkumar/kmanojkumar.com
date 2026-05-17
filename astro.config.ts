@@ -11,6 +11,7 @@ import remarkToc from "remark-toc";
 import remarkCollapse from "remark-collapse";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeExternalLinks from "rehype-external-links";
 import rehypeMermaid from "rehype-mermaid";
 import AstroPWA from "@vite-pwa/astro";
 import {
@@ -26,10 +27,18 @@ import config from "./site.config";
 export default defineConfig({
   site: config.site.url,
   trailingSlash: "never",
-  // Pair with trailingSlash: "never" — emit /posts/foo.html instead of
-  // /posts/foo/index.html so the static asset binding serves the path
-  // directly without a 307 redirect to add a trailing slash.
-  build: { format: "file" },
+  build: {
+    // Pair with trailingSlash: "never" — emit /posts/foo.html instead of
+    // /posts/foo/index.html so the static asset binding serves the path
+    // directly without a 307 redirect to add a trailing slash.
+    format: "file",
+    // Inline all CSS into HTML <head> instead of emitting an external
+    // stylesheet link. Removes the render-blocking CSS request (saves
+    // ~160ms LCP/FCP per PageSpeed). Trade-off: each HTML page grows by
+    // the bundle size (~19 KiB today) and CSS no longer caches across
+    // pages — fine for a blog where pages are mostly read once.
+    inlineStylesheets: "always",
+  },
   integrations: [
     mdx(),
     sitemap({
@@ -142,6 +151,14 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeKatex,
+      // Any <a href="http(s)://..."> in markdown content gets target=_blank
+      // and rel="noopener noreferrer" automatically. Skips internal links and
+      // mailto:/tel: schemes. nofollow intentionally omitted — we want
+      // citations to count for the destination's SEO.
+      [
+        rehypeExternalLinks,
+        { target: "_blank", rel: ["noopener", "noreferrer"] },
+      ],
       // Build-time Mermaid → inline SVG via headless chromium (Playwright).
       // strategy "img-svg" emits <img src="data:image/svg+xml,…"> — zero client JS.
       [rehypeMermaid, { strategy: "img-svg", dark: true }],
@@ -183,7 +200,9 @@ export default defineConfig({
         "Arial",
         "sans-serif",
       ],
-      weights: [400, 500, 600, 700],
+      // 400 body, 500 medium UI (nav, cards), 600 semibold (headings, links
+      // on hover). 700 (font-bold) is unused — verified empty in `dist/`.
+      weights: [400, 500, 600],
       styles: ["normal"],
       // woff2 for browsers, woff for Satori (which doesn't support woff2).
       formats: ["woff2", "woff"],

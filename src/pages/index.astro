@@ -53,14 +53,14 @@ const siteUrl = config.site.url.replace(/\/+$/, "");
       <a
         href={getRelativeLocaleUrl(locale, "about")}
         aria-label="About Manoj Kumar"
-        class="shrink-0"
+        class="group shrink-0"
       >
         <Image
           src={headshot}
           alt="K Manoj Kumar"
           widths={[128, 192, 256, 384]}
           sizes="(min-width: 640px) 192px, 128px"
-          class="size-32 rounded-md object-cover grayscale sm:size-48"
+          class="size-32 rounded-md object-cover grayscale transition duration-500 group-hover:grayscale-0 group-focus-visible:grayscale-0 sm:size-48"
           loading="eager"
         />
       </a>
@@ -81,7 +81,7 @@ const siteUrl = config.site.url.replace(/\/+$/, "");
           building <LinkButton
             class="app-link"
             href="https://vegastack.com"
-            rel="noopener"
+            rel="noopener noreferrer"
             target="_blank">VegaStack</LinkButton
           >.
         </p>

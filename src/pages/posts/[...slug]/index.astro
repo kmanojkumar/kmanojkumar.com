@@ -128,7 +128,7 @@ const ogImage = ogImageUrl
       : { "data-pagefind-body": "" }}
   >
     <h1
-      style={{ viewTransitionName: slugifyStr(title.replaceAll(".", "-")) }}
+      transition:name={slugifyStr(title.replaceAll(".", "-"))}
       class="app-h1 text-accent inline-block"
     >
       {title}
@@ -209,14 +209,14 @@ const ogImage = ogImageUrl
   <Footer />
 </PostLayout>
 
-<script is:inline data-astro-rerun>
+<script>
   // Top rail state: number of `▮▯` cells is recomputed from the container's
   // actual rendered width so the bar fills the column regardless of viewport.
   // Minimum floor of 20 cells so the bar still feels meaningful on tiny widths.
   let cellCount = 40;
   let fillRatio = 0;
 
-  function measureCellWidth(bar) {
+  function measureCellWidth(bar: HTMLElement) {
     const probe = document.createElement("span");
     probe.textContent = "▮";
     const s = getComputedStyle(bar);
@@ -275,35 +275,16 @@ const ogImage = ogImageUrl
     document.body.insertBefore(outer, document.body.firstChild);
 
     recomputeCellCount();
-    window.addEventListener("resize", recomputeCellCount);
   }
-  createProgressBar();
-
-  function updateScrollProgress() {
-    let ticking = false;
-    document.addEventListener("scroll", () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(() => {
-        const winScroll =
-          document.body.scrollTop || document.documentElement.scrollTop;
-        const height =
-          document.documentElement.scrollHeight -
-          document.documentElement.clientHeight;
-        const ratio = height > 0 ? winScroll / height : 0;
-        fillRatio = Math.max(0, Math.min(1, ratio));
-        renderBar();
-        ticking = false;
-      });
-    });
-  }
-  updateScrollProgress();
 
   function addHeadingLinks() {
     const headings = Array.from(
       document.querySelectorAll("h2, h3, h4, h5, h6")
     );
     for (const heading of headings) {
+      // Idempotency: skip headings that already have a # link.
+      if (heading.querySelector(":scope > .heading-link")) continue;
+
       heading.classList.add("group", "lg:relative");
       const link = document.createElement("a");
       link.className =
@@ -317,13 +298,24 @@ const ogImage = ogImageUrl
       heading.appendChild(link);
     }
   }
-  addHeadingLinks();
+
+  async function copyCode(block: HTMLElement, button: HTMLButtonElement) {
+    const code = block.querySelector("code");
+    const text = code?.innerText;
+    await navigator.clipboard.writeText(text ?? "");
+    button.innerText = "Copied";
+    setTimeout(() => {
+      button.innerText = "Copy";
+    }, 700);
+  }
 
   function attachCopyButtons() {
-    const copyButtonLabel = "Copy";
     const codeBlocks = Array.from(document.querySelectorAll("pre"));
 
     for (const codeBlock of codeBlocks) {
+      // Idempotency: skip <pre>s that already have a Copy button.
+      if (codeBlock.querySelector(":scope > .copy-code")) continue;
+
       const wrapper = document.createElement("div");
       wrapper.style.position = "relative";
 
@@ -337,7 +329,7 @@ const ogImage = ogImageUrl
 
       const copyButton = document.createElement("button");
       copyButton.className = `copy-code absolute end-3 ${topClass} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
-      copyButton.innerHTML = copyButtonLabel;
+      copyButton.innerHTML = "Copy";
       codeBlock.setAttribute("tabindex", "0");
       codeBlock.appendChild(copyButton);
 
@@ -348,23 +340,65 @@ const ogImage = ogImageUrl
         await copyCode(codeBlock, copyButton);
       });
     }
-
-    async function copyCode(block, button) {
-      const code = block.querySelector("code");
-      const text = code?.innerText;
-
-      await navigator.clipboard.writeText(text ?? "");
-
-      button.innerText = "Copied";
-
-      setTimeout(() => {
-        button.innerText = copyButtonLabel;
-      }, 700);
-    }
   }
-  attachCopyButtons();
 
+  // initPost runs on initial page load AND after every Astro View Transition
+  // swap (via the astro:page-load listener below). Earlier this script used
+  // `data-astro-rerun` which re-executed the entire script on each navigation
+  // — that re-execution races the swap, intermittently leaving the page
+  // without a progress bar. Using astro:page-load instead means setup happens
+  // strictly AFTER the swap completes, eliminating the race.
+  function initPost() {
+    // Always clear any rail left over from a previous post page. If the user
+    // navigates post → home, this strips the rail so it doesn't bleed onto
+    // pages where it isn't relevant.
+    document.querySelectorAll(".progress-container").forEach(el => el.remove());
+
+    // Bail unless we're on a post page. The script's module + listeners stay
+    // attached to `document` after the first post visit (modules persist across
+    // View Transitions), so this listener fires for every navigation including
+    // homepage and topics — we early-return when there's no <article> marker.
+    if (!document.getElementById("article")) return;
+
+    // Reset scroll fill — new page begins at top.
+    fillRatio = 0;
+
+    createProgressBar();
+    addHeadingLinks();
+    attachCopyButtons();
+  }
+
+  let scrollTicking = false;
+  function onScroll() {
+    if (!document.getElementById("myBar")) return;
+    if (scrollTicking) return;
+    scrollTicking = true;
+    window.requestAnimationFrame(() => {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const ratio = height > 0 ? winScroll / height : 0;
+      fillRatio = Math.max(0, Math.min(1, ratio));
+      renderBar();
+      scrollTicking = false;
+    });
+  }
+
+  // Listeners attached ONCE per session (the script no longer re-executes
+  // on navigation, so no leak from re-binding).
+  document.addEventListener("scroll", onScroll);
+  window.addEventListener("resize", recomputeCellCount);
+  document.addEventListener("astro:page-load", initPost);
   document.addEventListener("astro:after-swap", () =>
     window.scrollTo({ left: 0, top: 0, behavior: "instant" })
   );
+
+  // Eager call for the initial page load — astro:page-load may have already
+  // been dispatched by ClientRouter before this module finished loading, so
+  // the listener above would miss the first fire. initPost is idempotent
+  // (it clears any existing progress-container before recreating), so this
+  // is safe even if the event also fires shortly after.
+  initPost();
 </script>
