@@ -205,7 +205,7 @@ export default defineConfig({
       weights: [400, 500, 600],
       styles: ["normal"],
       // woff2 for browsers, woff for Satori (which doesn't support woff2).
-      formats: ["woff2", "woff"],
+      formats: ["woff", "woff2"],
     },
     {
       name: "Geist Mono",
@@ -220,7 +220,7 @@ export default defineConfig({
       ],
       weights: [400, 500, 600],
       styles: ["normal"],
-      formats: ["woff2", "woff"],
+      formats: ["woff", "woff2"],
     },
   ],
   env: {

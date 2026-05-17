@@ -12,7 +12,7 @@
   "license": "MIT",
   "author": "K Manoj Kumar <mk@kmanojkumar.com> (https://kmanojkumar.com)",
   "type": "module",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "private": true,
   "engines": {
     "node": ">=22.12.0"

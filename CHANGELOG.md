@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.2] — 2026-05-18
+
+### Fixed
+
+- Search no longer returns false-positive results for queries that don't actually appear in any post body (e.g. `clickup`, `xyzqwerty`, `addEventListener`). Pagefind v1.5's aggressive prefix expansion + fuzzy fallback was over-eager — added a tokenized strict-match filter on `/search` that requires every query token to be a substring of at least one `<mark>` highlight on the result.
+- Multi-word search queries now correctly require **all** tokens to match (AND semantics): `"DevOps automation"` returns the post that mentions both, but `"DevOps clickup"` returns nothing.
+- Query tokens are split on non-letter/non-digit boundaries, so trailing punctuation (`"DevOps."`, `"DevOps,"`) and hyphenation (`"self-hosted"`) no longer prevent legitimate matches.
+- Result-count message (`"N results for X"`) now reflects visible-result count, not pagefind's raw fuzzy-fallback count.
+
 ## [3.1.1] — 2026-05-18
 
 ### Fixed

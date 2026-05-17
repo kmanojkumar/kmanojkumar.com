@@ -7,7 +7,7 @@ $ whoami
  ██║ ╚═╝ ██║ ██║  ██╗   site : kmanojkumar.com
  ╚═╝     ╚═╝ ╚═╝  ╚═╝   loc  : Bengaluru, India
 
-                        MK▌
+                        MK ▌
 </pre>
 
 # kmanojkumar.com

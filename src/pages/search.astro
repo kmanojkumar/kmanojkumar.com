@@ -88,6 +88,91 @@ const t = useTranslations(locale);
         },
       });
 
+      // Strict-match filter: hide results where the user's full query isn't
+      // present as a (case-insensitive) substring of any <mark> highlight.
+      // Pagefind v1.5 has aggressive prefix expansion + a fuzzy fallback —
+      // queries like "clickup", "addEventListener", "xyzqwerty" otherwise
+      // surface posts that don't actually contain the query.
+      //
+      // We re-run on every PagefindUI re-render (typing, "show more", etc.)
+      // via MutationObserver, then patch the result-count message to match
+      // what's actually visible. Observer is disconnected during our own
+      // DOM writes to avoid re-trigger loops.
+      const inputEl = document.querySelector<HTMLInputElement>(
+        ".pagefind-ui__search-input"
+      );
+
+      let scheduled = false;
+      function scheduleFilter() {
+        if (scheduled) return;
+        scheduled = true;
+        // requestAnimationFrame coalesces bursty mutations from a single
+        // pagefind render pass into one filter run per frame.
+        requestAnimationFrame(() => {
+          scheduled = false;
+          applyStrictFilter();
+        });
+      }
+
+      function applyStrictFilter() {
+        filterObserver.disconnect();
+        try {
+          const rawQuery = (inputEl?.value ?? "").trim();
+          if (!rawQuery) return; // empty input: leave pagefind UI alone
+
+          // Tokenize: split on any non-letter/non-digit boundary (handles
+          // multi-word queries like "DevOps automation" and punctuation
+          // like "DevOps." or "self-hosted"). Each token must be a
+          // substring of at least one <mark> for the result to count.
+          const tokens = rawQuery
+            .toLowerCase()
+            .split(/[^\p{L}\p{N}]+/u)
+            .filter(t => t.length > 0);
+          if (tokens.length === 0) return;
+
+          const results = document.querySelectorAll<HTMLElement>(
+            ".pagefind-ui__result"
+          );
+          let visible = 0;
+          for (const result of results) {
+            const markTexts = Array.from(result.querySelectorAll("mark"))
+              .map(m => (m.textContent ?? "").toLowerCase())
+              .filter(t => t.length > 0);
+            const matched = tokens.every(token =>
+              markTexts.some(mark => mark.includes(token))
+            );
+            result.style.display = matched ? "" : "none";
+            if (matched) visible++;
+          }
+
+          // Patch the count message only when pagefind has rendered results.
+          const msg = document.querySelector(".pagefind-ui__message");
+          if (msg && results.length > 0) {
+            const q = (inputEl?.value ?? "").trim();
+            const want =
+              visible === 0
+                ? `No results for "${q}".`
+                : visible === 1
+                  ? `1 result for "${q}".`
+                  : `${visible} results for "${q}".`;
+            if (msg.textContent !== want) msg.textContent = want;
+          }
+        } finally {
+          // childList only — we don't want characterData here because our own
+          // textContent write to the message element would re-fire the loop.
+          filterObserver.observe(pageFindSearch as HTMLElement, {
+            childList: true,
+            subtree: true,
+          });
+        }
+      }
+
+      const filterObserver = new MutationObserver(scheduleFilter);
+      filterObserver.observe(pageFindSearch as HTMLElement, {
+        childList: true,
+        subtree: true,
+      });
+
       // If search param exists (eg: search?q=astro), trigger search
       const query = params.get("q");
       if (query) {
