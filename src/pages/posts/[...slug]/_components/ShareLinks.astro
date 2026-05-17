@@ -1,0 +1,153 @@
+---
+import IconX from "@/assets/icons/socials/x.svg";
+import IconLinkedin from "@/assets/icons/socials/linkedin.svg";
+import IconMail from "@/assets/icons/socials/mail.svg";
+import IconShare from "@/assets/icons/IconShare.svg";
+
+type Props = {
+  title: string;
+  url: string;
+};
+
+const { title, url } = Astro.props;
+
+const encodedUrl = encodeURIComponent(url);
+const encodedTitle = encodeURIComponent(title);
+
+const shareTargets = [
+  {
+    name: "X (Twitter)",
+    href: `https://x.com/intent/post?text=${encodedTitle}&url=${encodedUrl}`,
+    Icon: IconX,
+  },
+  {
+    name: "LinkedIn",
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    Icon: IconLinkedin,
+  },
+  {
+    name: "Email",
+    href: `mailto:?subject=${encodedTitle}&body=${encodedUrl}`,
+    Icon: IconMail,
+  },
+];
+
+const btn = "app-btn";
+---
+
+<div
+  class="flex flex-none flex-col items-start justify-center gap-2 md:items-start"
+>
+  <span>Share this post</span>
+  <div class="flex flex-wrap items-center gap-2">
+    {
+      shareTargets.map(({ name, href, Icon }) => (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class:list={btn}
+          aria-label={`Share on ${name}`}
+        >
+          <Icon class="size-4" aria-hidden="true" />
+          <span>{name}</span>
+        </a>
+      ))
+    }
+    <button
+      type="button"
+      data-copy-link
+      class:list={btn}
+      aria-label="Copy link to this post"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="size-4"
+        aria-hidden="true"
+      >
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+        ></path>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+        ></path>
+      </svg>
+      <span data-copy-label>Copy</span>
+    </button>
+    <button
+      type="button"
+      data-web-share
+      data-share-title={title}
+      data-share-url={url}
+      hidden
+      class:list={btn}
+      aria-label="Open native share sheet"
+    >
+      <IconShare class="size-4" aria-hidden="true" />
+      <span>Share…</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  function bindCopyButtons() {
+    const buttons =
+      document.querySelectorAll<HTMLButtonElement>("[data-copy-link]");
+    for (const btn of buttons) {
+      if (btn.dataset.bound === "1") continue;
+      btn.dataset.bound = "1";
+      const label = btn.querySelector<HTMLElement>("[data-copy-label]");
+      const original = label?.textContent ?? "Copy";
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+        } catch {
+          if (label) label.textContent = "Press ⌘+C / Ctrl+C";
+          return;
+        }
+        if (label) label.textContent = "Copied!";
+        setTimeout(() => {
+          if (label) label.textContent = original;
+        }, 1500);
+      });
+    }
+  }
+
+  function bindWebShareButtons() {
+    const supported =
+      typeof navigator !== "undefined" && typeof navigator.share === "function";
+    const buttons =
+      document.querySelectorAll<HTMLButtonElement>("[data-web-share]");
+    for (const btn of buttons) {
+      if (!supported) {
+        btn.remove();
+        continue;
+      }
+      btn.hidden = false;
+      if (btn.dataset.bound === "1") continue;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.share({
+            title: btn.dataset.shareTitle ?? document.title,
+            url: btn.dataset.shareUrl ?? window.location.href,
+          });
+        } catch {
+          // user cancelled or share failed — no-op
+        }
+      });
+    }
+  }
+
+  function init() {
+    bindCopyButtons();
+    bindWebShareButtons();
+  }
+
+  init();
+  document.addEventListener("astro:after-swap", init);
+</script>

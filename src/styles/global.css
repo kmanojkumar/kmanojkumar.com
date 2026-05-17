@@ -1,0 +1,109 @@
+@import "tailwindcss";
+@import "katex/dist/katex.min.css";
+@import "./theme.css";
+@import "./typography.css";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@layer base {
+  * {
+    @apply border-border outline-accent/75;
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-muted) transparent;
+    text-decoration-skip-ink: auto;
+  }
+  a,
+  button {
+    @apply outline-accent outline-offset-1 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility max-w-app {
+  @apply max-w-3xl;
+}
+
+@utility app-layout {
+  @apply max-w-app mx-auto w-full px-4;
+}
+
+@utility active-nav {
+  @apply decoration-foreground/25 underline decoration-1 underline-offset-[var(--underline-offset)];
+}
+
+/* === Single source of truth for shared visual primitives ===
+   Components and pages use these utility classes instead of repeating the
+   underlying Tailwind chains. To change a site-wide pattern, edit the
+   utility here and every consumer updates automatically. */
+
+/* Inline link decoration — body copy, LinkButton, Topic chips.
+   Use this when the link should be permanently underlined. */
+@utility app-link {
+  @apply decoration-foreground/25 hover:decoration-foreground/55 hover:text-accent underline decoration-1 underline-offset-[var(--underline-offset)];
+}
+
+/* Quieter variant — no underline at rest, appears on hover.
+   Two intentional exceptions to app-link's always-underlined rule:
+   - Header nav items (otherwise the nav looks like a wall of underlines)
+   - Card titles in /posts and homepage listings (one underline per list item
+     adds up to visual noise on a 20-item page).
+   Shares the SAME decoration shade + offset + text color shift so the hover
+   state is visually identical to app-link's hover. */
+@utility app-nav-link {
+  @apply hover:text-accent hover:decoration-foreground/55 decoration-1 underline-offset-[var(--underline-offset)] hover:underline;
+}
+
+/* Page-level heading (Posts / Topics / Post detail / About / topic-by-name).
+   Geist Mono throughout — mono reads denser, so size tier is one notch lower
+   than the equivalent sans heading would be. */
+@utility app-h1 {
+  @apply font-mono text-2xl font-semibold tracking-tight sm:text-3xl;
+}
+
+/* Section heading — homepage (Featured, Recent Posts), /posts year groups. */
+@utility app-h2 {
+  @apply font-mono text-xl font-medium tracking-tight tabular-nums sm:text-2xl;
+}
+
+/* Homepage hero h1 — single deliberately-larger display size. */
+@utility app-hero {
+  @apply font-mono text-3xl font-semibold tracking-tight sm:text-4xl;
+}
+
+/* Section header wrapper: heading + thin underline rule beneath. */
+@utility app-section-header {
+  @apply border-border mt-12 mb-4 flex items-baseline justify-between border-b pb-2 first:mt-0;
+}
+
+/* Small bordered pill — month label, status badges. */
+@utility app-pill {
+  @apply border-border text-muted-foreground inline-block rounded-md border px-2 py-0.5 font-mono text-xs;
+}
+
+/* Button — pager controls, share controls, copy-link. */
+@utility app-btn {
+  @apply border-border bg-background text-foreground hover:bg-muted focus-visible:outline-accent inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dashed disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+/* Muted meta line — dates, reading time, counts. */
+@utility app-meta {
+  @apply text-muted-foreground font-mono text-sm;
+}
+
+/* Discrete on/off cursor blink — applied to the ▌ glyph at end of posts. */
+@keyframes terminal-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@utility cursor-blink {
+  animation: terminal-blink 1.1s steps(2, start) infinite;
+}
+
+:target {
+  scroll-margin-block: 1rem;
+}

@@ -1,0 +1,240 @@
+---
+import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { PUBLIC_CF_ANALYTICS_TOKEN } from "astro:env/client";
+import { resolveDefaultOgImagePath } from "@/utils/resolveDefaultOgImagePath";
+import { getAssetPath } from "@/utils/withBase";
+import config from "@/config";
+import "@/styles/global.css";
+
+type Props = {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  canonicalURL?: string;
+};
+
+const { site } = config;
+
+// build.format: "file" means Astro.url.pathname looks like "/posts/foo.html"
+// or "/index.html" — strip those suffixes so the canonical URL is clean.
+function cleanPath(pathname: string): string {
+  return pathname.replace(/\.html$/, "").replace(/^\/index$/, "/") || "/";
+}
+
+const {
+  title = site.title,
+  description = site.description,
+  ogImage = resolveDefaultOgImagePath(config),
+  ogImageAlt = `${site.title} — ${site.description}`,
+  canonicalURL = new URL(cleanPath(Astro.url.pathname), Astro.site).href,
+} = Astro.props;
+
+const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
+const rssHref = getRelativeLocaleUrl(
+  Astro.currentLocale ?? config.site.lang,
+  "rss.xml"
+);
+---
+
+<!doctype html>
+<html
+  dir={site.dir ?? "ltr"}
+  lang={Astro.currentLocale ?? site.lang}
+  class="overflow-y-scroll scroll-smooth"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      media="(prefers-color-scheme: light)"
+      href={getAssetPath("kmanojkumar-com-logo-light.svg")}
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      media="(prefers-color-scheme: dark)"
+      href={getAssetPath("kmanojkumar-com-logo-dark.svg")}
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href={getAssetPath("favicon-32x32.png")}
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href={getAssetPath("icon-192.png")}
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href={getAssetPath("apple-touch-icon.png")}
+    />
+    <link rel="manifest" href={getAssetPath("manifest.webmanifest")} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="kmanojkumar" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- Fonts: Geist (sans) + Geist Mono -->
+    <Font
+      cssVariable="--font-sans"
+      preload={[{ subset: "latin", weight: 400, style: "normal" }]}
+    />
+    <Font
+      cssVariable="--font-mono"
+      preload={[{ subset: "latin", weight: 400, style: "normal" }]}
+    />
+
+    <!-- Primary meta -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="author" content={site.author} />
+    <link rel="sitemap" href={getAssetPath("sitemap-index.xml")} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.title} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta
+      property="og:locale"
+      content={site.lang.includes("-")
+        ? site.lang.replace("-", "_")
+        : `${site.lang}_US`}
+    />
+    <meta property="og:image" content={socialImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    <!-- Twitter / X -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:site" content="@kmanojkumar" />
+    <meta property="twitter:creator" content="@kmanojkumar" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={socialImageURL} />
+    <meta property="twitter:image:alt" content={ogImageAlt} />
+
+    <!-- Feed autodiscovery: RSS + Atom + JSON Feed -->
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${site.title} (RSS)`}
+      href={new URL(rssHref, Astro.site)}
+    />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title={`${site.title} (Atom)`}
+      href={new URL("feed.atom.xml", Astro.site)}
+    />
+    <link
+      rel="alternate"
+      type="application/feed+json"
+      title={`${site.title} (JSON Feed)`}
+      href={new URL("feed.json", Astro.site)}
+    />
+
+    <!-- Static theme-color (light + dark variants); JS updates the active one
+         on theme toggle to keep mobile browser chrome in sync. -->
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#000000"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <!-- Extra head content injected by child layouts (e.g. JSON-LD, article meta) -->
+    <slot name="head" />
+
+    {
+      site.googleVerification && (
+        <meta
+          name="google-site-verification"
+          content={site.googleVerification}
+        />
+      )
+    }
+
+    <!--
+      Inline FOUC-prevention script: sets data-theme on <html> before
+      the browser paints. Runs synchronously, no defer/async.
+    -->
+    <script is:inline>
+      (function () {
+        const stored = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        const theme = stored ?? (prefersDark ? "dark" : "light");
+        document.firstElementChild?.setAttribute("data-theme", theme);
+        // Expose value so theme.ts can skip re-detection.
+        window.__theme = { value: theme };
+      })();
+    </script>
+
+    <!--
+      Console greeting: shows a friendly message + contact info to anyone
+      who opens DevTools. Runs once per session; the __greeted flag prevents
+      duplicate prints on Astro client-side navigation.
+    -->
+    <script is:inline>
+      (function () {
+        if (window.__greeted) return;
+        window.__greeted = true;
+        // eslint-disable-next-line no-console -- intentional DevTools easter egg
+        console.log(
+          "\n" +
+            " ╔╦╗╦╔═    Hi 👋 I'm Manoj — K Manoj Kumar\n" +
+            " ║║║╠╩╗    CS Engineer · Bengaluru\n" +
+            " ╩ ╩╩ ╩\n\n" +
+            "  github   https://github.com/kmanojkumar\n" +
+            "  x        https://x.com/kmanojkumar\n" +
+            "  email    mk@kmanojkumar.com\n\n" +
+            "  You're looking at the source. Open source under MIT.\n" +
+            "  → https://github.com/kmanojkumar/kmanojkumar.com\n\n" +
+            "  Spotted a typo or bug? PRs welcome.\n"
+        );
+      })();
+    </script>
+
+    <ClientRouter />
+
+    {
+      /* Cloudflare Web Analytics: privacy-first, no cookies. Only loads when token is set. */
+      PUBLIC_CF_ANALYTICS_TOKEN && import.meta.env.PROD && (
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={`{"token": "${PUBLIC_CF_ANALYTICS_TOKEN}"}`}
+        />
+      )
+    }
+  </head>
+  <body
+    class="bg-background font-app text-foreground selection:bg-accent/75 selection:text-accent-foreground flex min-h-svh flex-col"
+  >
+    <slot />
+    <script>
+      import "@/scripts/theme";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+---
+import config from "@/config";
+
+type BlogPostingData = {
+  url: string;
+  title: string;
+  description: string;
+  author?: string;
+  pubDatetime: Date;
+  modDatetime?: Date | null;
+  ogImage?: string;
+  topics?: string[];
+  wordCount?: number;
+  /** ISO 8601 duration e.g. "PT8M" */
+  timeRequired?: string;
+};
+
+type PersonData = {
+  url: string;
+  image?: string;
+  jobTitle?: string;
+  sameAs?: string[];
+};
+
+type WebSiteData = {
+  url: string;
+  searchUrlTemplate?: string;
+};
+
+type Props =
+  | { type: "BlogPosting"; data: BlogPostingData }
+  | { type: "Person"; data: PersonData }
+  | { type: "WebSite"; data: WebSiteData };
+
+const { type, data } = Astro.props;
+
+let json: Record<string, unknown> = {};
+
+if (type === "BlogPosting") {
+  const d = data;
+  json = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: d.title,
+    description: d.description,
+    image: d.ogImage,
+    datePublished: d.pubDatetime.toISOString(),
+    dateModified: (d.modDatetime ?? d.pubDatetime).toISOString(),
+    author: [
+      {
+        "@type": "Person",
+        name: d.author ?? config.site.author,
+        ...(config.site.profile ? { url: config.site.profile } : {}),
+      },
+    ],
+    publisher: {
+      "@type": "Person",
+      name: config.site.author,
+      ...(config.site.profile ? { url: config.site.profile } : {}),
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": d.url },
+    ...(d.topics && d.topics.length > 0
+      ? {
+          articleSection: d.topics[0],
+          keywords: d.topics.join(", "),
+        }
+      : {}),
+    ...(typeof d.wordCount === "number" ? { wordCount: d.wordCount } : {}),
+    ...(d.timeRequired ? { timeRequired: d.timeRequired } : {}),
+  };
+} else if (type === "Person") {
+  const d = data;
+  json = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: config.site.author,
+    url: d.url,
+    description: config.site.description,
+    ...(d.image ? { image: d.image } : {}),
+    ...(d.jobTitle ? { jobTitle: d.jobTitle } : {}),
+    ...(d.sameAs && d.sameAs.length > 0 ? { sameAs: d.sameAs } : {}),
+  };
+} else {
+  const d = data;
+  json = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: config.site.title,
+    url: d.url,
+    description: config.site.description,
+    author: { "@type": "Person", name: config.site.author },
+    ...(d.searchUrlTemplate
+      ? {
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: d.searchUrlTemplate,
+            },
+            "query-input": "required name=search_term_string",
+          },
+        }
+      : {}),
+  };
+}
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(json)} />

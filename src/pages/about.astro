@@ -1,0 +1,49 @@
+---
+import { getEntry, render } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Footer from "@/components/Footer.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import config from "@/config";
+
+const about = await getEntry("pages", "about");
+
+if (!about) {
+  throw new Error(
+    "Missing content entry: `about.md` or `about.mdx` in `src/content/pages/`"
+  );
+}
+
+const { Content } = await render(about);
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const sameAs = config.socials
+  .filter(s => /^https?:\/\//.test(s.url))
+  .map(s => s.url);
+---
+
+<Layout
+  title={`${about.data.title} | ${config.site.title}`}
+  description={about.data.description}
+  ogImage={about.data.ogImage}
+  canonicalURL={about.data.canonicalURL}
+>
+  <Fragment slot="head">
+    <StructuredData
+      type="Person"
+      data={{
+        url: pageUrl,
+        jobTitle: "CS Engineer & Entrepreneur",
+        sameAs,
+      }}
+    />
+  </Fragment>
+
+  <Header />
+
+  <Main pageTitle={about.data.title} class="app-prose">
+    <Content />
+  </Main>
+
+  <Footer />
+</Layout>

@@ -1,0 +1,10 @@
+# Copy this to `.dev.vars` (gitignored) for local Worker preview.
+# These map to `astro:env` PUBLIC_* variables consumed at build time.
+
+# Cloudflare Web Analytics beacon token (optional).
+# Generate at: https://dash.cloudflare.com → Analytics → Web Analytics → Add site
+PUBLIC_CF_ANALYTICS_TOKEN=
+
+# Google Search Console verification meta tag value (optional).
+# Generate at: https://search.google.com/search-console
+PUBLIC_GOOGLE_SITE_VERIFICATION=

@@ -1,0 +1,64 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Socials from "./Socials.astro";
+import config from "@/config";
+import { gitCommit, hasGitCommit } from "@/utils/buildInfo";
+
+type Props = {
+  noMarginTop?: boolean;
+} & HTMLAttributes<"footer">;
+
+const { noMarginTop = false, class: className, ...attrs } = Astro.props;
+
+const currentYear = new Date().getFullYear();
+const repoUrl = "https://github.com/kmanojkumar/kmanojkumar.com";
+const licenseHref = `${repoUrl}/blob/main/LICENSE`;
+const contentLicenseHref = `${repoUrl}/blob/main/CONTENT-LICENSE.md`;
+const commitHref = hasGitCommit ? `${repoUrl}/commit/${gitCommit}` : repoUrl;
+const commitTitle = hasGitCommit
+  ? `Deployed commit ${gitCommit}`
+  : "Local build (no commits yet)";
+---
+
+<footer
+  class:list={["app-layout", { "mt-auto": !noMarginTop }, className]}
+  {...attrs}
+>
+  <div
+    class="border-border flex flex-col items-center justify-between gap-3 border-t py-6 sm:flex-row sm:py-4"
+  >
+    <p class="text-muted-foreground text-center font-mono text-sm">
+      <span class="block sm:inline">
+        &copy; {currentYear}
+        {config.site.author} &middot;
+        <a
+          href={commitHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="app-link font-mono"
+          title={commitTitle}
+        >
+          {gitCommit}
+        </a>
+      </span>
+      <span class="hidden sm:inline"> &middot; </span>
+      <span class="block sm:inline">
+        <a
+          href={licenseHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="app-link">Code MIT</a
+        >
+        {" "}
+        &middot;
+        <a
+          href={contentLicenseHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="app-link">Posts CC BY 4.0</a
+        >
+      </span>
+    </p>
+    <Socials />
+  </div>
+</footer>

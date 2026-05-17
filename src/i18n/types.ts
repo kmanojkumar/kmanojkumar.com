@@ -1,0 +1,64 @@
+export interface UIStrings {
+  nav: {
+    home: string;
+    posts: string;
+    topics: string;
+    about: string;
+    archives: string;
+    search: string;
+  };
+  post: {
+    publishedAt: string;
+    updatedAt: string;
+    sharePostIntro: string;
+    sharePostOn: string;
+    sharePostViaEmail: string;
+    topicLabel: string;
+    backToTop: string;
+    goBack: string;
+    editPage: string;
+    previousPost: string;
+    nextPost: string;
+  };
+  pagination: {
+    prev: string;
+    next: string;
+    page: string;
+  };
+  home: {
+    featured: string;
+    recentPosts: string;
+    allPosts: string;
+  };
+  pages: {
+    topicTitle: string;
+    topicDesc: string;
+
+    topicsTitle: string;
+    topicsDesc: string;
+
+    postsTitle: string;
+    postsDesc: string;
+
+    archivesTitle: string;
+    archivesDesc: string;
+
+    searchTitle: string;
+    searchDesc: string;
+  };
+  a11y: {
+    skipToContent: string;
+    openMenu: string;
+    closeMenu: string;
+    toggleTheme: string;
+    searchPlaceholder: string;
+    noResults: string;
+    goToPreviousPage: string;
+    goToNextPage: string;
+  };
+  notFound: {
+    title: string;
+    message: string;
+    goHome: string;
+  };
+}

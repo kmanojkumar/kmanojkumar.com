@@ -1,0 +1,35 @@
+/**
+ * Cloudflare Workers config — public-repo safe.
+ *
+ * No secrets in this file. Account ID and API token are provided at deploy
+ * time via environment variables:
+ *   - CLOUDFLARE_ACCOUNT_ID
+ *   - CLOUDFLARE_API_TOKEN
+ *
+ * For local development:
+ *   cp .dev.vars.example .dev.vars   # then fill in values; .dev.vars is gitignored
+ *   pnpm wrangler login              # one-time, interactive
+ *   pnpm preview:wrangler            # builds + runs Workers locally on :8787
+ *
+ * For production deploys via CI: see .github/workflows/deploy.yml
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kmanojkumar-com",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-05-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": true
+  },
+  "routes": [
+    { "pattern": "kmanojkumar.com", "custom_domain": true },
+    { "pattern": "www.kmanojkumar.com", "custom_domain": true }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

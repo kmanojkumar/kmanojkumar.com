@@ -1,0 +1,81 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
+import { getPostUrl } from "@/utils/getPostPaths";
+import { slugifyStr } from "@/utils/slugify";
+import { getReadingStats } from "@/utils/readingTime";
+import Datetime from "./Datetime.astro";
+
+type Props = {
+  variant?: "h2" | "h3";
+  /** Suppress the hero thumbnail even if the post has one. */
+  hideImage?: boolean;
+  /** Optional positional index — used by the /posts pager. */
+  index?: number;
+} & CollectionEntry<"posts">;
+
+const {
+  variant: Heading = "h2",
+  id,
+  data,
+  filePath,
+  body,
+  hideImage = false,
+  index,
+} = Astro.props;
+
+const { title, description, heroImage, ogImage, ...props } = data;
+const reading = getReadingStats(body);
+
+// Prefer the explicit hero image; fall back to the OG cover image.
+const candidate = heroImage ?? ogImage;
+const image =
+  !hideImage && candidate && typeof candidate !== "string" ? candidate : null;
+
+const href = getPostUrl(id, filePath, Astro.currentLocale);
+---
+
+<li class="my-8" data-post-idx={index}>
+  <a
+    href={href}
+    class:list={[
+      "app-nav-link inline-block font-mono text-lg font-medium tracking-tight",
+      "focus-visible:no-underline focus-visible:underline-offset-0",
+    ]}
+  >
+    <Heading transition:name={slugifyStr(title.replaceAll(".", "-"))}>
+      {title}
+    </Heading>
+  </a>
+
+  <div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start">
+    {
+      image && (
+        <a
+          href={href}
+          class="hidden aspect-video shrink-0 overflow-hidden rounded-lg sm:block sm:w-44"
+          aria-hidden="true"
+          tabindex="-1"
+        >
+          <Image
+            src={image}
+            alt=""
+            widths={[176, 352, 528]}
+            sizes="(min-width: 640px) 176px, 100vw"
+            class="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
+      )
+    }
+    <div class="min-w-0 flex-1">
+      <div class="mb-2 flex flex-wrap items-center gap-x-2">
+        <Datetime {...props} showIcon={false} />
+        <span aria-hidden="true" class="text-muted-foreground">·</span>
+        <span class="app-meta">{reading.text}</span>
+      </div>
+      <p class="line-clamp-3">{description}</p>
+    </div>
+  </div>
+</li>

@@ -1,0 +1,45 @@
+/* Register design tokens for Tailwind v4 — strict B&W palette */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --font-app: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* Shared (theme-independent) tokens.
+   --underline-offset: single source of truth for every text-decoration offset
+   on the site (links, nav, body copy, search input). Edit here to change
+   site-wide. Consumed via `underline-offset-[var(--underline-offset)]` in
+   Tailwind utility chains. */
+:root {
+  --underline-offset: 4px;
+}
+
+/* Light theme — white + black + neutral grays. No accent color. */
+:root,
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #000000;
+  /* "accent" reuses foreground; emphasis comes from weight/underline, not color */
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+  --muted: #f5f5f5;
+  --muted-foreground: #525252;
+  --border: #e5e5e5;
+}
+
+/* Dark theme — black + white + neutral grays. Inverted. */
+[data-theme="dark"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --muted: #171717;
+  --muted-foreground: #a3a3a3;
+  --border: #262626;
+}

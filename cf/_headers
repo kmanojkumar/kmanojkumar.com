@@ -1,0 +1,79 @@
+# Cloudflare Workers Static Assets honours this file like Pages does.
+# Reference: https://developers.cloudflare.com/workers/static-assets/headers/
+
+# ---- Global: security + privacy defaults ----
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  X-DNS-Prefetch-Control: on
+  # CSP: strict but allows the inline FOUC theme script (hash would be cleaner;
+  # 'unsafe-inline' kept for now to avoid build-time hashing complexity).
+  # connect-src includes the CF Web Analytics beacon endpoint.
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'
+
+# ---- Fingerprinted Astro assets (immutable) ----
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ---- Pagefind search assets ----
+/pagefind/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# ---- Fonts in /_astro already covered; also catch top-level fonts if any ----
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+
+# ---- Static images at top-level / posts ----
+# Match the /_astro/* 1-year-immutable policy. Cloudflare merges Cache-Control
+# values when multiple rules match (e.g. /_astro/foo.png hits both /_astro/* and
+# /*.png) — keeping both at the same value avoids the merge picking a smaller
+# max-age. If you ever change a root-level image, rename the file to invalidate.
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+# ---- Feeds: hour-fresh on browser, day-fresh at edge ----
+/rss.xml
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800
+/feed.atom.xml
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800
+/feed.json
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800
+
+# ---- Markdown twins ----
+/*.md
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800
+  Content-Type: text/markdown; charset=utf-8
+
+# ---- llms.txt ----
+/llms.txt
+  Cache-Control: public, max-age=3600
+  Content-Type: text/plain; charset=utf-8
+
+# ---- Manifest + service worker ----
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400
+  Content-Type: application/manifest+json; charset=utf-8
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+/workbox-*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# ---- HTML pages: short browser cache, longer edge cache with SWR ----
+/
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+/*.html
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400

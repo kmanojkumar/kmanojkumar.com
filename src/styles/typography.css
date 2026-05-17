@@ -1,0 +1,179 @@
+@plugin "@tailwindcss/typography";
+
+@layer base {
+  /* ===== Override default Tailwind Typography styles ===== */
+  .app-prose {
+    @apply prose;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    th {
+      /* Cap every heading at semibold (600). Tailwind Typography defaults
+         use 800 for h1 and 700 for h2 — that's heavier than the site uses
+         anywhere else. Geist Mono unifies the heading system site-wide. */
+      @apply text-foreground mb-3 font-mono font-semibold;
+    }
+
+    h3 {
+      @apply italic;
+    }
+
+    strong,
+    b {
+      /* Match the site-wide weight cap; Tailwind Typography already uses 600
+         but make it explicit so the rule survives plugin defaults changes. */
+      @apply font-semibold;
+    }
+
+    p,
+    strong,
+    ol,
+    ul,
+    figcaption,
+    table,
+    code {
+      @apply text-foreground;
+    }
+
+    a {
+      @apply text-foreground hover:text-accent decoration-foreground/25 hover:decoration-foreground/55 wrap-break-word decoration-1 underline-offset-[var(--underline-offset)] focus-visible:no-underline;
+    }
+
+    ul {
+      @apply overflow-x-clip;
+    }
+
+    li {
+      @apply marker:text-accent;
+    }
+
+    hr {
+      @apply border-border;
+    }
+
+    img {
+      @apply border-border mx-auto border;
+    }
+
+    figcaption {
+      @apply opacity-75;
+    }
+
+    table {
+      th,
+      td {
+        @apply border-border border p-2;
+      }
+
+      th {
+        @apply py-1.5;
+      }
+    }
+
+    code,
+    kbd,
+    pre,
+    samp {
+      @apply font-mono;
+    }
+
+    code {
+      @apply bg-muted/75 text-foreground rounded-lg p-1 wrap-break-word before:content-none after:content-none;
+    }
+
+    .astro-code code {
+      @apply flex-[1_0_100%] bg-inherit p-0;
+    }
+
+    blockquote {
+      @apply border-s-accent/80 wrap-break-word opacity-80;
+    }
+
+    details {
+      @apply text-foreground inline-block cursor-pointer select-none [&_p]:hidden [&_ul]:my-0!;
+    }
+
+    summary {
+      @apply focus-visible:outline-accent focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dashed;
+    }
+
+    pre {
+      @apply focus-visible:outline-accent focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-dashed;
+    }
+
+    /* ===== Sidenotes (Pandoc ^[…] via remarkSidenotes) =====
+       Default (mobile, narrow desktop): each note becomes a block-quoted
+       muted aside below the paragraph that referenced it. The superscript
+       link [N] jumps to the corresponding span via anchor.
+       xl+ (≥1280px): viewport finally has gutter room outside the
+       max-w-3xl article column, so the span floats into the left margin
+       and sits next to its reference. */
+    .sidenote-ref {
+      @apply text-foreground/55 font-mono text-[0.7em];
+      line-height: 0;
+      vertical-align: super;
+    }
+    .sidenote-ref a {
+      @apply hover:text-accent no-underline;
+    }
+    .sidenote {
+      @apply text-muted-foreground border-border my-3 block border-s-2 ps-3 font-sans text-sm wrap-break-word;
+    }
+    .sidenote-num {
+      @apply text-foreground/55 me-1 font-mono text-[0.75em];
+      line-height: 0;
+      vertical-align: super;
+    }
+    .sidenote a {
+      @apply decoration-foreground/25 hover:decoration-foreground/55 hover:text-accent underline decoration-1 underline-offset-[var(--underline-offset)];
+    }
+  }
+
+  /* On wide screens, peel the sidenote out into the left gutter.
+     Article column is max-w-3xl (48rem). The padding+margin lookup:
+     a viewport ≥80rem leaves ≥16rem on each side — enough for a 14rem
+     sidenote with a 1rem gap. */
+  @media (min-width: 80rem) {
+    .app-prose .sidenote {
+      float: inline-start;
+      clear: inline-start;
+      width: 14rem;
+      margin-inline-start: -16rem;
+      margin-inline-end: 0;
+      margin-block: 0 0.75rem;
+      padding-inline-start: 0;
+      border-inline-start: 0;
+      text-align: start;
+    }
+  }
+
+  /* ===== Code Blocks & Syntax Highlighting ===== */
+  .astro-code {
+    @apply outline-border flex overflow-hidden rounded-lg border bg-(--shiki-light-bg) text-(--shiki-light) [&_span]:text-(--shiki-light);
+  }
+
+  html[data-theme="dark"] .astro-code {
+    @apply bg-(--shiki-dark-bg) text-(--shiki-dark) [&_span]:text-(--shiki-dark);
+  }
+
+  /* Styles for Shiki transformers */
+  /* https://shiki.style/packages/transformers */
+  .astro-code {
+    .line.diff.add {
+      @apply relative inline-block w-full bg-green-400/20 before:absolute before:-left-3 before:text-green-500 before:content-['+'];
+    }
+    .line.diff.remove {
+      @apply relative inline-block w-full bg-red-500/20 before:absolute before:-left-3 before:text-red-500 before:content-['-'];
+    }
+    .line.highlighted {
+      @apply inline-block w-full bg-slate-400/20;
+    }
+    .highlighted-word {
+      @apply border-border rounded-sm border px-0.5 py-px;
+    }
+  }
+}
